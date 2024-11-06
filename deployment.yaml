@@ -18,7 +18,7 @@ spec:
         image: nginx:latest
         volumeMounts:
         - name: nginx-config-volume
-          mountPath: /etc/nginx/nginx.conf
+          mountPath: /tmp/nginx.conf
           subPath: nginx.conf
         envFrom:
         - secretRef:
