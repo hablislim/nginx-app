@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+  labels:
+    app: nginx
+spec:
+  clusterIP: None  # Headless service to preserve pod DNS names
+  ports:
+    - port: 80
+      name: web
+  selector:
+    app: nginx
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: nginx-statefulset
+spec:
+  serviceName: "nginx"  # Must match the headless service name
+  replicas: 3           # Number of Nginx replicas (pods)
+  selector:
+    matchLabels:
+      app: nginx         # Must match the label in the template section
+  template:
+    metadata:
+      labels:
+        app: nginx       # Must match the selector labels
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+              name: web
+          volumeMounts:
+            - name: www-data
+              mountPath: /usr/share/nginx/html   # Mount path for persistent storage
+  volumeClaimTemplates:
+    - metadata:
+        name: www-data   # Name of the PersistentVolumeClaim (PVC)
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi   # Requesting 1Gi of storage per pod
